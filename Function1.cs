@@ -16,6 +16,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 public static class BotFunction
 {
@@ -37,57 +38,47 @@ public static class BotFunction
         log.Info("BotFunction is processing a request.");
 
         string jsonContent = await req.ReadAsStringAsync();
-        dynamic data = JsonConvert.DeserializeObject(jsonContent);
+        var update = JsonConvert.DeserializeObject<Update>(jsonContent);
 
-        int offset = data?.offset ?? 0;
-        var me = await botClient.GetMeAsync();
-        log.Info($"Bot id: {me.Id}. Bot name: {me.FirstName}.");
-
-        var updates = await botClient.GetUpdatesAsync(offset);
-
-        foreach (var update in updates)
+        if (update == null || update.Message == null || update.Message.From == null || string.IsNullOrEmpty(update.Message.Text))
         {
-            if (update == null || update.Message == null || update.Message.From == null || string.IsNullOrEmpty(update.Message.Text))
+            return new OkResult();
+        }
+
+        var id = update.Message.Chat.Id;
+        var type = update.Message.Chat.Type == ChatType.Private ? "user" : "group";
+
+        if (update.Type == UpdateType.Message)
+        {
+            if (update.Message.Text.StartsWith("/start"))
             {
-                continue;
+                await HandleStartCommand(update.Message, type);
             }
-
-            var id = update.Message.Chat.Id;
-            var type = update.Message.Chat.Type == ChatType.Private ? "user" : "group";
-
-            if (update.Type == UpdateType.Message)
+            else if ((update.Message.Text.StartsWith("/add") || userStates.ContainsKey(id)))
             {
-                if (update.Message.Text.StartsWith("/start"))
-                {
-                    await HandleStartCommand(update.Message, type);
-                }
-                else if ((update.Message.Text.StartsWith("/add") || userStates.ContainsKey(id)))
-                {
-                    await HandleAddCommand(update.Message, botClient, id, type);
-                }
-                else if (update.Message.Text.StartsWith("/ping"))
-                {
-                    await HandlePingCommand(update.Message, botClient);
-                }
-                else if (update.Message.Text.StartsWith("/list"))
-                {
-                    await HandleListCommand(update.Message, botClient);
-                }
-                else if (update.Message.Text.StartsWith("/delete"))
-                {
-                    await HandleDeleteCommand(update.Message, botClient);
-                }
-                else if (deleteStates.ContainsKey(id) && deleteStates[id])
-                {
-                    await HandleDeleteResponse(update.Message, botClient);
-                }
+                await HandleAddCommand(update.Message, botClient, id, type);
             }
-
-            offset = update.Id + 1;
+            else if (update.Message.Text.StartsWith("/ping"))
+            {
+                await HandlePingCommand(update.Message, botClient);
+            }
+            else if (update.Message.Text.StartsWith("/list"))
+            {
+                await HandleListCommand(update.Message, botClient);
+            }
+            else if (update.Message.Text.StartsWith("/delete"))
+            {
+                await HandleDeleteCommand(update.Message, botClient);
+            }
+            else if (deleteStates.ContainsKey(id) && deleteStates[id])
+            {
+                await HandleDeleteResponse(update.Message, botClient);
+            }
         }
 
         return new OkResult();
     }
+
 
     public class User
     {

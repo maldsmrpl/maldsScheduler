@@ -3,7 +3,11 @@
     "maldsScheduler": {
       "commandName": "Project",
       "commandLineArgs": "--port 7184",
-      "launchBrowser": false
+      "environmentVariables": {
+        "TELEGRAM_BOT_TOKEN": "6060367879:AAF9n_LKOnRRozKDG24DHIwJgJh_3VOpA3A",
+        "MONGO_CONNECTION_URI": "mongodb+srv://maldsUser:GcoKfY6xCwULYmNh@maldsschedulerdb.sae0ssh.mongodb.net/?retryWrites=true&w=majority",
+        "DATABASE_NAME": "maldsSchedulerDB"
+      }
     }
   }
 }
