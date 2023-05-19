@@ -27,8 +27,8 @@ public static class BotFunction
     private static Dictionary<long, bool> deleteStates = new Dictionary<long, bool>();
 
     [FunctionName("BotFunction")]
-    public static async Task<HttpResponseMessage> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestMessage req,
+    public static async Task<HttpResponseMessage> Update(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req,
         TraceWriter log)
     {
         log.Info("BotFunction is processing a request.");
