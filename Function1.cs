@@ -14,6 +14,8 @@ using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 public static class BotFunction
 {
@@ -27,13 +29,14 @@ public static class BotFunction
     private static Dictionary<long, bool> deleteStates = new Dictionary<long, bool>();
 
     [FunctionName("BotFunction")]
-    public static async Task<HttpResponseMessage> Update(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req,
-        TraceWriter log)
+
+    public static async Task<IActionResult> Update(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
+            TraceWriter log)
     {
         log.Info("BotFunction is processing a request.");
 
-        string jsonContent = await req.Content.ReadAsStringAsync();
+        string jsonContent = await req.ReadAsStringAsync();
         dynamic data = JsonConvert.DeserializeObject(jsonContent);
 
         int offset = data?.offset ?? 0;
@@ -83,7 +86,7 @@ public static class BotFunction
             offset = update.Id + 1;
         }
 
-        return req.CreateResponse(HttpStatusCode.OK, "Processed request");
+        return new OkResult();
     }
 
     public class User
