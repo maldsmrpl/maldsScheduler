@@ -117,6 +117,9 @@ public static class BotFunction
         if (userExists)
         {
             await botClient.SendTextMessageAsync(message.Chat.Id, "Hello, welcome back!");
+
+            // Delete the user's input "/start" message
+            await botClient.DeleteMessageAsync(message.Chat.Id, message.MessageId);
         }
         else
         {
@@ -125,6 +128,7 @@ public static class BotFunction
             await botClient.SendTextMessageAsync(message.Chat.Id, "Hello, welcome to our bot!");
         }
     }
+
 
     private static async Task HandleAddCommand(Message message, ITelegramBotClient botClient, long id, string type)
     {
