@@ -101,12 +101,11 @@ public static class BotFunction
     }
     private class AddCommandState
     {
-        internal int MessageId;
-
         public AddCommandStep Step { get; set; }
         public DateTime Date { get; set; }
         public TimeSpan Time { get; set; }
         public string Description { get; set; }
+        public int MessageId { get; set; }
     }
 
     private static async Task HandleStartCommand(Message message, string type)
