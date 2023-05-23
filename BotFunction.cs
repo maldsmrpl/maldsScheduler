@@ -117,8 +117,6 @@ public static class BotFunction
         if (userExists)
         {
             await botClient.SendTextMessageAsync(message.Chat.Id, "Hello, welcome back!");
-
-            // Delete the user's input "/start" message
             await botClient.DeleteMessageAsync(message.Chat.Id, message.MessageId);
         }
         else
@@ -247,7 +245,8 @@ public static class BotFunction
         try
         {
             var result = client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
-            await botClient.SendTextMessageAsync(message.Chat.Id, "Pinged your deployment. You successfully connected to MongoDB!");
+            await botClient.SendTextMessageAsync(message.Chat.Id, "Don't worry! Everything is ok!");
+            await botClient.DeleteMessageAsync(message.Chat.Id, message.MessageId);
         }
         catch (Exception ex)
         {
