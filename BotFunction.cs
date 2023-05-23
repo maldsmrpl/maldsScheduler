@@ -194,7 +194,7 @@ public static class BotFunction
                             break;
                         }
                     }
-                    if (hours < 0 || hours > 23 || minutes < 59)
+                    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59)
                     {
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Invalid time. Please check your input and try again.");
                         break;
@@ -231,8 +231,6 @@ public static class BotFunction
                         var userUpdate = Builders<User>.Update.Set(u => u.Events, user.Events);
                         await userCollection.UpdateOneAsync(userFilter, userUpdate);
                     }
-
-                    // Delete previous messages
                     var messagesToDelete = new List<int>();
                     foreach (var stateId in userStates.Keys)
                     {
@@ -247,12 +245,8 @@ public static class BotFunction
                     {
                         await botClient.DeleteMessageAsync(message.Chat.Id, singleMessage);
                     }
-
-                    // Send a new message with event details
                     string eventDetails = $"Event Details:\n\nDate: {eventDateTime.ToString("dd-MM-yyyy")}\nTime: {eventDateTime.ToString("HH:mm")}\nDescription: {state.Description}";
                     await botClient.SendTextMessageAsync(message.Chat.Id, eventDetails);
-
-                    // Remove the user state
                     userStates.Remove(id);
                     Console.WriteLine($"Removing state for user {id} from userStates");
                     break;
@@ -260,8 +254,7 @@ public static class BotFunction
         }
     }
 
-
-            private static async Task HandlePingCommand(Message message, ITelegramBotClient botClient)
+    private static async Task HandlePingCommand(Message message, ITelegramBotClient botClient)
     {
         var settings = MongoClientSettings.FromConnectionString(connectionUri);
         settings.ServerApi = new ServerApi(ServerApiVersion.V1);
