@@ -101,6 +101,8 @@ public static class BotFunction
     }
     private class AddCommandState
     {
+        internal int MessageId;
+
         public AddCommandStep Step { get; set; }
         public DateTime Date { get; set; }
         public TimeSpan Time { get; set; }
@@ -148,7 +150,7 @@ public static class BotFunction
                     string[] dateParts = message.Text.Split(new[] { '-', ',', '.', ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     if (dateParts.Length == 0 || dateParts.Length > 3)
                     {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, "Invalid date format. Please enter the date as dd-mm-yyyy, dd-mm or dd.");
+                        await botClient.SendTextMessageAsync(message.Chat.Id, "Invalid date format. Please enter the date as dd-mm-yyyy, dd-mm, or dd.");
                         break;
                     }
                     int day = int.Parse(dateParts[0]);
@@ -192,7 +194,7 @@ public static class BotFunction
                             break;
                         }
                     }
-                    if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59)
+                    if (hours < 0 || hours > 23 || minutes < 59)
                     {
                         await botClient.SendTextMessageAsync(message.Chat.Id, "Invalid time. Please check your input and try again.");
                         break;
@@ -229,15 +231,37 @@ public static class BotFunction
                         var userUpdate = Builders<User>.Update.Set(u => u.Events, user.Events);
                         await userCollection.UpdateOneAsync(userFilter, userUpdate);
                     }
+
+                    // Delete previous messages
+                    var messagesToDelete = new List<int>();
+                    foreach (var stateId in userStates.Keys)
+                    {
+                        if (stateId == id)
+                        {
+                            break;
+                        }
+                        messagesToDelete.Add(userStates[stateId].MessageId);
+                    }
+                    messagesToDelete.Add(message.MessageId);
+                    foreach (var singleMessage in messagesToDelete)
+                    {
+                        await botClient.DeleteMessageAsync(message.Chat.Id, singleMessage);
+                    }
+
+                    // Send a new message with event details
+                    string eventDetails = $"Event Details:\n\nDate: {eventDateTime.ToString("dd-MM-yyyy")}\nTime: {eventDateTime.ToString("HH:mm")}\nDescription: {state.Description}";
+                    await botClient.SendTextMessageAsync(message.Chat.Id, eventDetails);
+
+                    // Remove the user state
                     userStates.Remove(id);
-                    await botClient.SendTextMessageAsync(message.Chat.Id, "Succesfully added new event!");
                     Console.WriteLine($"Removing state for user {id} from userStates");
                     break;
             }
         }
     }
 
-    private static async Task HandlePingCommand(Message message, ITelegramBotClient botClient)
+
+            private static async Task HandlePingCommand(Message message, ITelegramBotClient botClient)
     {
         var settings = MongoClientSettings.FromConnectionString(connectionUri);
         settings.ServerApi = new ServerApi(ServerApiVersion.V1);
