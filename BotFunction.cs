@@ -230,9 +230,11 @@ public static class BotFunction
                         var userUpdate = Builders<User>.Update.Set(u => u.Events, user.Events);
                         await userCollection.UpdateOneAsync(userFilter, userUpdate);
                     }
+
                     var messagesToDelete = new List<int>();
                     foreach (var stateId in userStates.Keys)
                     {
+                        await botClient.SendTextMessageAsync(message.Chat.Id, stateId.ToString());
                         if (stateId == id)
                         {
                             break;
@@ -241,9 +243,9 @@ public static class BotFunction
                         await botClient.SendTextMessageAsync(message.Chat.Id, userStates[stateId].MessageId.ToString());
                     }
                     messagesToDelete.Add(message.MessageId);
-                    foreach (var singleMessage in messagesToDelete)
+                    for (int i = 0; i < messagesToDelete.Count; i++)
                     {
-                        await botClient.DeleteMessageAsync(message.Chat.Id, singleMessage);
+                        await botClient.DeleteMessageAsync(message.Chat.Id, messagesToDelete[i]);
                     }
                     string eventDetails = $"Event Details:\n\nDate: {eventDateTime.ToString("dd-MM-yyyy")}\nTime: {eventDateTime.ToString("HH:mm")}\nDescription: {state.Description}";
                     await botClient.SendTextMessageAsync(message.Chat.Id, eventDetails);
