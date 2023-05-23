@@ -239,6 +239,7 @@ public static class BotFunction
                             break;
                         }
                         messagesToDelete.Add(userStates[stateId].MessageId);
+                        await botClient.SendTextMessageAsync(message.Chat.Id, userStates[stateId].MessageId.ToString());
                     }
                     messagesToDelete.Add(message.MessageId);
                     foreach (var singleMessage in messagesToDelete)
