@@ -263,6 +263,7 @@ public static class BotFunction
         if (user == null || user.Events == null || user.Events.Count == 0)
         {
             await botClient.SendTextMessageAsync(message.Chat.Id, "You have no events!");
+            await botClient.DeleteMessageAsync(message.Chat.Id, message.MessageId);
         }
         else
         {
@@ -274,6 +275,7 @@ public static class BotFunction
                 listMessage += $"🔘 {eventItem.DateTime.ToString("dd-MM-yy HH:mm")}: {eventItem.Description}\n";
             }
             await botClient.SendTextMessageAsync(message.Chat.Id, listMessage);
+            await botClient.DeleteMessageAsync(message.Chat.Id, message.MessageId);
         }
     }
     private static async Task HandleDeleteCommand(Message message, ITelegramBotClient botClient)
