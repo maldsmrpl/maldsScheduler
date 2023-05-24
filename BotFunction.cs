@@ -27,7 +27,8 @@ public static class BotFunction
     private static readonly TelegramBotClient botClient = new TelegramBotClient(Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN"));
     private static readonly IMongoCollection<User> usersCollection = db != null ? db.GetCollection<User>("users") : null;
     private static Dictionary<long, AddCommandState> userStates = new Dictionary<long, AddCommandState>();
-    private static int[] msgList;
+    private static int? addFirstId;
+    private static int? addLastId;
     private static Dictionary<long, bool> deleteStates = new Dictionary<long, bool>();
 
     [FunctionName("BotFunction")]
@@ -136,7 +137,13 @@ public static class BotFunction
 
         if (message.Text == "/add" || message.Text == "/add@malds_scheduler_bot")
         {
-            userStates[id] = new AddCommandState { Step = AddCommandStep.AwaitingDate };
+            addFirstId = null;
+            addLastId = null;
+            addFirstId = message.MessageId;
+            userStates[id] = new AddCommandState
+            { 
+                Step = AddCommandStep.AwaitingDate, 
+            };
             Console.WriteLine($"Added state for user {id} to userStates");
             await botClient.SendTextMessageAsync(message.Chat.Id, "Enter date of event (format dd-mm-yyyy or dd-mm or dd. You can use - , . or space as a separator)");
         }
@@ -231,23 +238,14 @@ public static class BotFunction
                         var userUpdate = Builders<User>.Update.Set(u => u.Events, user.Events);
                         await userCollection.UpdateOneAsync(userFilter, userUpdate);
                     }
+                    addLastId = message.MessageId;
+                    
+                    for (int i = 0; i < (addLastId - addFirstId + 1); i++)
+                    {
+                        await botClient.DeleteMessageAsync(message.Chat.Id, addLastId + i);
+                    }
 
-                    var messagesToDelete = new List<int>();
-                    foreach (var stateId in userStates.Keys)
-                    {
-                        await botClient.SendTextMessageAsync(message.Chat.Id, stateId.ToString());
-                        if (stateId == id)
-                        {
-                            break;
-                        }
-                        messagesToDelete.Add(userStates[stateId].MessageId);
-                        await botClient.SendTextMessageAsync(message.Chat.Id, userStates[stateId].MessageId.ToString());
-                    }
-                    messagesToDelete.Add(message.MessageId);
-                    for (int i = 0; i < messagesToDelete.Count; i++)
-                    {
-                        await botClient.DeleteMessageAsync(message.Chat.Id, messagesToDelete[i]);
-                    }
+
                     string eventDetails = $"Event Details:\n\nDate: {eventDateTime.ToString("dd-MM-yyyy")}\nTime: {eventDateTime.ToString("HH:mm")}\nDescription: {state.Description}";
                     await botClient.SendTextMessageAsync(message.Chat.Id, eventDetails);
                     userStates.Remove(id);
