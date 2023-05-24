@@ -27,8 +27,8 @@ public static class BotFunction
     private static readonly TelegramBotClient botClient = new TelegramBotClient(Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN"));
     private static readonly IMongoCollection<User> usersCollection = db != null ? db.GetCollection<User>("users") : null;
     private static Dictionary<long, AddCommandState> userStates = new Dictionary<long, AddCommandState>();
-    private static int? addFirstId;
-    private static int? addLastId;
+    private static int addFirstId;
+    private static int addLastId;
     private static Dictionary<long, bool> deleteStates = new Dictionary<long, bool>();
 
     [FunctionName("BotFunction")]
@@ -137,8 +137,8 @@ public static class BotFunction
 
         if (message.Text == "/add" || message.Text == "/add@malds_scheduler_bot")
         {
-            addFirstId = null;
-            addLastId = null;
+            addFirstId = 0;
+            addLastId = 0;
             addFirstId = message.MessageId;
             userStates[id] = new AddCommandState
             { 
@@ -242,9 +242,8 @@ public static class BotFunction
                     
                     for (int i = 0; i < (addLastId - addFirstId + 1); i++)
                     {
-                        await botClient.DeleteMessageAsync(message.Chat.Id, addLastId + i);
+                        await botClient.DeleteMessageAsync(message.Chat.Id, addFirstId + i);
                     }
-
 
                     string eventDetails = $"Event Details:\n\nDate: {eventDateTime.ToString("dd-MM-yyyy")}\nTime: {eventDateTime.ToString("HH:mm")}\nDescription: {state.Description}";
                     await botClient.SendTextMessageAsync(message.Chat.Id, eventDetails);
