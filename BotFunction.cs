@@ -361,9 +361,7 @@ public static class BotFunction
 
         var userUpdate = Builders<User>.Update.Set(u => u.Events, user.Events);
         await usersCollection.UpdateOneAsync(userFilter, userUpdate);
-
         await botClient.SendTextMessageAsync(message.Chat.Id, "Event(s) deleted!");
-
         deleteStates[id] = false;
     }
 }
