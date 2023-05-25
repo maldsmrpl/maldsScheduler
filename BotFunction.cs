@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -16,7 +14,6 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 public static class BotFunction
 {
@@ -89,7 +86,6 @@ public static class BotFunction
         public string Type { get; set; }
         public List<Event> Events { get; set; }
     }
-
     public class Event
     {
         public DateTime DateTime { get; set; }
@@ -129,7 +125,6 @@ public static class BotFunction
             await botClient.SendTextMessageAsync(message.Chat.Id, "Hello, welcome to our bot!");
         }
     }
-
 
     private static async Task HandleAddCommand(Message message, ITelegramBotClient botClient, long id, string type)
     {
@@ -295,6 +290,7 @@ public static class BotFunction
             await botClient.DeleteMessageAsync(message.Chat.Id, message.MessageId);
         }
     }
+
     private static async Task HandleDeleteCommand(Message message, ITelegramBotClient botClient)
     {
         var id = message.Chat.Id;
