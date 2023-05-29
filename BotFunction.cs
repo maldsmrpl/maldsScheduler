@@ -24,9 +24,10 @@ public static class BotFunction
     private static readonly TelegramBotClient botClient = new TelegramBotClient(Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN"));
     private static readonly IMongoCollection<User> usersCollection = db != null ? db.GetCollection<User>("users") : null;
     private static Dictionary<long, AddCommandState> userStates = new Dictionary<long, AddCommandState>();
+    private static Dictionary<long, bool> deleteStates = new Dictionary<long, bool>();
     private static int addFirstId;
     private static int addLastId;
-    private static Dictionary<long, bool> deleteStates = new Dictionary<long, bool>();
+
 
     [FunctionName("BotFunction")]
 
